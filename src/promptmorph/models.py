@@ -127,3 +127,34 @@ class RuntimeEvent(BaseModel):
     active_subgoal_id: str | None = None
     target_displacement_m: float = 0.0
 
+
+class GripperCommand(str, Enum):
+    HOLD = "hold"
+    OPEN = "open"
+    CLOSE = "close"
+
+
+class ActionChunk(BaseModel):
+    """One bounded Cartesian command issued to an embodiment adapter."""
+
+    model_config = ConfigDict(frozen=True)
+
+    chunk_id: str
+    target_pose: Pose
+    gripper_command: GripperCommand = GripperCommand.HOLD
+    duration_s: float = Field(default=0.25, gt=0.0, le=0.25)
+    position_tolerance_m: float = Field(default=0.02, gt=0.0)
+
+
+class ExecutionResult(BaseModel):
+    """Observable evidence returned after one action chunk."""
+
+    model_config = ConfigDict(frozen=True)
+
+    chunk_id: str
+    start_time_s: float = Field(ge=0.0)
+    end_time_s: float = Field(ge=0.0)
+    simulation_steps: int = Field(gt=0)
+    reached_target: bool
+    position_error_m: float = Field(ge=0.0)
+    final_frame: WorldFrame

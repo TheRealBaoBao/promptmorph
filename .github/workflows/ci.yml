@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -e ".[dev,ml]"
+      - run: pip install -e ".[dev,ml,sim]"
       - run: python -m ruff check .
       - run: python -m mypy src
       - run: python -m pytest --cov=promptmorph --cov-report=term-missing --cov-fail-under=85

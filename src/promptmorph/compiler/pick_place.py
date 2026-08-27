@@ -101,7 +101,9 @@ class PickPlaceCompiler:
                     subject_id=manipulated_object_id,
                     reference_id=target_id,
                     desired_subject_in_reference=desired_relative_pose,
-                    position_tolerance_m=0.025,
+                    # The cup has a 43 mm inner radius and the marker a 12 mm
+                    # half-width, leaving a conservative 35 mm center tolerance.
+                    position_tolerance_m=0.035,
                 ),
                 Subgoal(
                     subgoal_id="release-object",
@@ -124,4 +126,3 @@ def motion_correlation(object_positions: np.ndarray, gripper_positions: np.ndarr
     return float(np.dot(object_delta, gripper_delta) / (
         np.linalg.norm(object_delta) * np.linalg.norm(gripper_delta)
     ))
-
