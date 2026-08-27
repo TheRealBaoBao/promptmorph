@@ -1,0 +1,19 @@
+project:
+  seed: 7
+  capability: marker_into_cup
+
+compiler:
+  minimum_motion_m: 0.05
+  ambiguity_margin_m: 0.015
+
+runtime:
+  action_chunk_s: 0.25
+  target_displacement_threshold_m: 0.04
+  minimum_perception_confidence: 0.70
+  maximum_replans: 4
+  episode_timeout_s: 30.0
+
+success:
+  position_tolerance_m: 0.025
+  consecutive_valid_frames: 5
+
