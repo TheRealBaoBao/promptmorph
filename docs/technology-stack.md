@@ -6,7 +6,7 @@ The stack is selected to support the capability rather than decorate the reposit
 |---|---|
 | Python 3.11 | Shared perception, task compilation, planning, and experiment logic |
 | PyTorch | Train native sensorimotor models from scratch on automatically labeled physical-interaction trajectories |
-| MuJoCo | Contact-rich simulation, seeded disturbances, camera observations, and rollouts |
+| MuJoCo | Franka joint dynamics, seeded scene disturbances, camera-ready state, and rollouts |
 | NumPy | Geometry, episode arrays, and simulator-independent feature extraction |
 | Pydantic | Runtime validation and versionable data contracts |
 | Docker | Reproducible headless simulation and CI environment |
@@ -41,11 +41,23 @@ collisions, and exceeded budgets remain deterministic runtime stops. This separa
 the project demonstrate ML training without making a small learned model the only safety
 layer.
 
+## MuJoCo component
+
+`FrankaTabletopEnv` owns simulator names, joint addresses, mocap bodies, and ground-truth
+observations. `MujocoChunkExecutor` exposes only typed `ActionChunk → ExecutionResult`
+behavior to the rest of the system. Its 250 ms horizon is a deliberate receding-horizon
+contract: no planner can queue a long open-loop motion without another observation and
+plan-validity check.
+
+The current Panda asset uses self-contained analytic geometry instead of downloaded mesh
+assets. This keeps clean Colab and Docker installs deterministic. Kinematic marker
+attachment isolates planning/recovery quality from contact-grasp tuning in this MVP.
+
 ## Container usage
 
 ```bash
 docker build -t promptmorph:dev .
-docker run --rm promptmorph:dev
+docker run --rm promptmorph:dev --seed 7
 ```
 
 The image runs as an unprivileged user and sets `MUJOCO_GL=egl` for headless rendering.

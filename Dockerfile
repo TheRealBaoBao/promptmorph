@@ -20,5 +20,5 @@ RUN python -m pip install --upgrade pip \
 RUN useradd --create-home --uid 10001 promptmorph
 USER promptmorph
 
-ENTRYPOINT ["python", "-m", "promptmorph.cli"]
-
+ENTRYPOINT ["promptmorph-mujoco-demo"]
+CMD ["--output-dir", "/tmp/promptmorph-artifacts"]

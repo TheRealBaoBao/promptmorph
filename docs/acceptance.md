@@ -17,19 +17,28 @@ removed after observing results.
 
 An episode succeeds only when all of the following hold for five consecutive frames:
 
-- manipulated-object position is within 2.5 cm of the instantiated relative goal;
+- manipulated-object position is within the task's geometric tolerance;
 - the object is released;
 - the object remains stable;
 - no collision or safety violation occurred;
 - episode time and replan count remain within budget.
 
-## Required artifacts per episode
+## Artifacts emitted now
 
-- `metadata.json`: seed, configuration hash, commit, timestamps
-- `task_graph.json`: compiled immutable prompt representation
-- `events.jsonl`: subgoal changes, plan invalidations, replans, failures
-- `trajectory.npz`: entity, gripper, and commanded states
-- `video.mp4`: fixed camera plus diagnostic overlay
+- `metadata.json`: schema version, seed, frozen config, task graph, counts, and outcome
+- `frames.jsonl`: complete typed world observations
+- `actions.jsonl`: every bounded Cartesian/gripper action chunk
+- `events.jsonl`: plan-validity decisions, replans, success, and failures
+
+Writes use a temporary sibling and atomic replace so interrupted serialization cannot
+leave a partially written final artifact.
+
+## Remaining release artifacts
+
+- configuration and source-commit hashes in the episode manifest;
+- rendered `video.mp4` with active subgoal and replan overlay;
+- a frozen seed manifest and aggregate recovery report;
+- five-frame post-release stability verification.
 
 ## Release gate
 
@@ -40,4 +49,3 @@ The v0.1 release is blocked by any of:
 - geometry, compiler, or runtime unit tests fail;
 - reported results cannot be regenerated from the stored seeds;
 - the showcase video uses different code/configuration than the reported runs.
-

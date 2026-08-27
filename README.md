@@ -17,31 +17,52 @@ explicit, inspectable, and reproducible using 3D geometry and closed-loop planni
 ## Current vertical slice
 
 - Typed simulator-independent world state
+- Headless MuJoCo Franka Panda tabletop scene with a marker and movable cup
+- Gravity-compensated 7-DoF joint control with damped least-squares Cartesian IK
+- Exactly 250 ms action chunks (125 steps at a 2 ms simulator timestep)
+- Scripted physical-prompt capture through the deployment action interface
+- Versioned episode recorder (`metadata.json`, frames/actions/events JSONL)
 - Audited SE(3) transforms with explicit `xyzw` quaternion convention
 - Pick/place demonstration compiler with ambiguity checks
 - Object-relative task graph (`grasp → align → place → release`)
 - Live-scene goal adaptation
-- Perception-confidence and target-displacement safety gates
-- Deterministic replanning demo and unit tests
+- Perception-confidence, target-displacement, and replan-budget safety gates
+- Deterministic cup-movement recovery with stale-plan cancellation
 - PyTorch progress-model training contract for simulator-generated trajectories
 - Headless Docker image and container-build CI
 
 ## Quick start
 
 ```bash
-python -m pip install -e ".[dev]"
-pytest
-promptmorph-demo
+python -m pip install -e ".[dev,sim,ml]"
+python -m pytest
+promptmorph-mujoco-demo --seed 7 --output-dir artifacts
 ```
 
 Expected demo output:
 
-```text
-Compiled: marker-into-cup-001 -> 4 subgoals
-Initial live goal: (...)
-Monitor: replan_required (target moved beyond the active plan validity region)
-Replanned live goal: (...)
+```json
+{
+  "status": "succeeded",
+  "replans": 1,
+  "chunks_executed": 34,
+  "final_position_error_m": 0.0002
+}
 ```
+
+The demonstration and recovery episode are stored separately. Every rollout records the
+seed, frozen config, compiled task graph, commanded chunks, observations, runtime events,
+and final outcome. This is also the native sensorimotor data source for the from-scratch
+PyTorch experiments.
+
+### Simulation fidelity boundary
+
+The scene uses Panda link dimensions, seven Panda joint ranges, and joint actuators, with
+primitive collision/visual geometry so it remains self-contained in Colab and Docker.
+Ground-truth MuJoCo poses are the perception backend. Marker attachment is a deterministic
+kinematic grasp abstraction; contact-stable grasping and RGB-D pose estimation remain
+explicit follow-on work. The recovery loop does not access simulator object IDs outside
+the MuJoCo adapter.
 
 ## System boundary
 
@@ -64,7 +85,7 @@ constraint: task intent must not depend on simulator object IDs or actuator layo
 
 ### Week 1 — deterministic MuJoCo capability
 
-- Franka Panda tabletop scene with marker, cup, and RGB-D camera
+- Franka Panda tabletop scene with marker, cup, and fixed camera
 - Record one demonstration as versioned episode data
 - Compile it into the object-relative graph
 - Execute from at least 20 seeded layouts

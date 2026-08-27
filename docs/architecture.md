@@ -22,9 +22,9 @@ target. Unsupported or ambiguous prompts are rejected.
 | Runtime monitor | Validate confidence, plan freshness, progress, budgets | Silently ignore invalid state |
 | Episode logger | Persist evidence and failure taxonomy | Change runtime behavior |
 
-## Planned protocols
+## Implemented protocols
 
-The next implementation increment introduces these Python protocols:
+The runtime boundary is expressed by these Python protocols:
 
 ```python
 class PerceptionBackend(Protocol):
@@ -37,8 +37,19 @@ class ChunkExecutor(Protocol):
     def execute(self, chunk: ActionChunk) -> ExecutionResult: ...
 ```
 
-MuJoCo will implement all three for the MVP. A future ROS 2 adapter should not require
+MuJoCo implements perception and execution for the MVP. A future ROS 2 adapter should not require
 changes to the compiler or task graph.
+
+## MuJoCo control loop
+
+Each `ActionChunk` is capped at 250 ms. The Franka adapter solves a position-only
+damped-least-squares IK target, tracks a smooth joint trajectory through MuJoCo position
+actuators, and feeds forward MuJoCo gravity/Coriolis bias forces. At a 2 ms timestep,
+every full chunk advances exactly 125 physics steps before returning a fresh `WorldFrame`.
+
+The monitor evaluates that frame before another chunk is committed. If the cup moved
+beyond the active plan validity radius, the runtime discards all remaining waypoints,
+re-instantiates the marker goal in the new cup frame, and generates a new bounded plan.
 
 ## Coordinate conventions
 
@@ -55,7 +66,7 @@ Every external adapter must convert into this convention at its boundary.
 A plan is valid only relative to the world frame from which it was created. The runtime
 invalidates it when:
 
-- target translation exceeds the configured validity radius;
+- target translation exceeds the configured validity radius at a chunk boundary;
 - perception confidence falls below threshold;
 - observations become stale;
 - the executed chunk does not make minimum progress;
@@ -63,4 +74,3 @@ invalidates it when:
 - collision, timeout, or replan budget is reached.
 
 Replanning is an expected state transition, not an exception.
-

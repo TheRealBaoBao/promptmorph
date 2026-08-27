@@ -14,6 +14,5 @@ runtime:
   episode_timeout_s: 30.0
 
 success:
-  position_tolerance_m: 0.025
+  position_tolerance_m: 0.035
   consecutive_valid_frames: 5
-

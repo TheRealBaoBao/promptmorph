@@ -26,13 +26,18 @@ vision-language model with an action head.
 
 ## 2. Build the data engine before scaling the model
 
-Every MuJoCo rollout must produce a versioned episode containing observations, actions,
+Every MuJoCo rollout produces a versioned episode containing observations, actions,
 task graph, disturbances, contacts, success state, and failure reason. Dataset manifests
 record generator version, configuration hash, seed range, feature schema, and train/test
 split.
 
 Train/test separation is by complete scene seed and perturbation configuration—not random
 rows from the same trajectory—so temporal leakage cannot inflate results.
+
+The implemented v1 recorder already captures the native observations, 250 ms actions,
+plan-validity events, task graph, seed, config, and outcome. Contact labels, generator
+commit hashes, and split manifests are the next data-engine increment before action-model
+training begins.
 
 ## 3. Start small and scale only from evidence
 
@@ -82,4 +87,3 @@ PromptMorph may claim a model is trained from scratch on its simulated sensorimo
 It may not call that model a foundation model, claim physical AGI, or imply equivalence to
 GEN-1/GEN-1.5. The relevant contribution is the complete one-shot, closed-loop system and
 the quality of its evidence.
-
